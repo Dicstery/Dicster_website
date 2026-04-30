@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<title>Dicstery</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    height: 100%;
+}
+
+body {
+    font-family: 'Orbitron', sans-serif;
+    background: #020009;
+    color: #ffffff;
+    overflow-x: hidden;
+    min-height: 100vh;
+    position: relative;
+}
+
+#parallaxCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -5;
+    pointer-events: none;
+}
+
+.glow-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -4;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 40%, rgba(160,0,255,0.2), transparent 60%),
+                radial-gradient(circle at 50% 90%, rgba(0,200,255,0.2), transparent 65%);
+    mix-blend-mode: screen;
+    animation: glowPulse 8s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); }
+}
+
+.progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ff00ff, #00ffff, #ff00ff);
+    box-shadow: 0 0 20px #ff00ff;
+    z-index: 9999;
+    width: 0%;
+    transition: width 0.1s;
+}
+
+main {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+}
+
+section {
+    width: 100%;
+    padding: 100px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    text-align: center;
+}
+
+.hero {
+    height: 100vh;
+    justify-content: center;
+}
+
+.hero-title {
+    font-size: clamp(48px, 12vw, 140px);
+    font-weight: 800;
+    letter-spacing: 8px;
+    text-shadow: 0 0 30px #ff00ff, 0 0 60px #00ffff;
+    transform-style: preserve-3d;
+    color: #ffffff;
+    animation: glitch 4s infinite;
+    line-height: 1.1;
+}
+
+@keyframes glitch {
+    0%, 100% { transform: skew(0deg, 0deg); text-shadow: 0 0 30px #ff00ff, 0 0 60px #00ffff; }
+    95% { transform: skew(2deg, 1deg); text-shadow: -2px 0 #ff00ff, 2px 0 #00ffff; }
+    96% { transform: skew(-2deg, -1deg); text-shadow: 2px 0 #ff00ff, -2px 0 #00ffff; }
+    97% { transform: skew(0deg, 0deg); text-shadow: 0 0 30px #ff00ff, 0 0 60px #00ffff; }
+}
+
+.hero-subtitle {
+    margin-top: 20px;
+    font-size: clamp(18px, 4vw, 32px);
+    color: #b4baff;
+    text-shadow: 0 0 20px #00ffff;
+    transition: transform 0.1s;
+    min-height: 60px;
+}
+
+.cursor {
+    display: inline-block;
+    width: 3px;
+    height: 1em;
+    background: #00ffff;
+    margin-left: 5px;
+    animation: blink 1s infinite;
+    vertical-align: middle;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+.info-card {
+    width: 100%;
+    max-width: 800px;
+    background: rgba(10, 5, 20, 0.3);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 0, 255, 0.3);
+    border-radius: 30px;
+    padding: 50px 40px;
+    box-shadow: 0 0 30px rgba(255, 0, 255, 0.3);
+    margin-bottom: 30px;
+    transform-style: preserve-3d;
+    transition: all 0.3s;
+    opacity: 0;
+    transform: translateY(60px);
+    transition: opacity 0.8s, transform 0.8s, border-color 0.3s, box-shadow 0.3s;
+    position: relative;
+}
+
+.info-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.info-card:hover {
+    border-color: #00ffff;
+    box-shadow: 0 0 50px #ff00ff, 0 0 100px #00ffff;
+}
+
+.info-icon {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 0, 255, 0.3);
+    border: 1px solid #ff00ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #ff00ff;
+    cursor: help;
+    transition: all 0.3s;
+    z-index: 5;
+}
+
+.info-icon:hover {
+    background: #ff00ff;
+    color: #000;
+    box-shadow: 0 0 15px #ff00ff;
+}
+
+.info-icon:hover + .info-message {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.info-message {
+    position: absolute;
+    top: 45px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid #00ffff;
+    border-radius: 10px;
+    padding: 8px 15px;
+    font-size: 14px;
+    color: #00ffff;
+    box-shadow: 0 0 20px #00ffff;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+.info-message::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 15px;
+    width: 10px;
+    height: 10px;
+    background: rgba(0, 0, 0, 0.9);
+    border-left: 1px solid #00ffff;
+    border-top: 1px solid #00ffff;
+    transform: rotate(45deg);
+}
+
+.about-me-title {
+    font-size: clamp(32px, 6vw, 54px);
+    margin-bottom: 25px;
+    text-shadow: 0 0 15px #ff00ff;
+}
+
+.about-me-text {
+    font-size: clamp(16px, 3.5vw, 22px);
+    line-height: 1.8;
+    color: #e8e3ff;
+}
+
+.skills-section {
+    margin-top: 80px;
+    width: 100%;
+    max-width: 800px;
+}
+
+.skills-title {
+    font-size: clamp(32px, 6vw, 54px);
+    margin-bottom: 50px;
+    text-shadow: 0 0 15px #00ffff;
+}
+
+.skill-item {
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.skill-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: #d0d0ff;
+    align-items: center;
+}
+
+.skill-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    animation: bounce 2s infinite;
+    filter: drop-shadow(0 0 5px #ff00ff);
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+.skill-name {
+    display: flex;
+    align-items: center;
+}
+
+.skill-bar {
+    width: 100%;
+    height: 10px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(255,0,255,0.3);
+}
+
+.skill-progress {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #ff00ff, #00ffff);
+    box-shadow: 0 0 20px #ff00ff;
+    transition: width 1.5s;
+}
+
+.review-card {
+    border: 1px solid rgba(255,215,0,0.3);
+    box-shadow: 0 0 30px rgba(255,215,0,0.3);
+    padding: 40px 30px;
+}
+
+.review-card:hover {
+    border-color: #ffd700;
+    box-shadow: 0 0 50px #ffd700, 0 0 100px #ffaa00;
+}
+
+.review-count {
+    font-size: clamp(28px, 5vw, 40px);
+    color: #ffd700;
+    text-shadow: 0 0 20px #ffd700;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.review-stars {
+    display: flex;
+    gap: 10px;
+    font-size: clamp(28px, 5vw, 40px);
+    color: #ffd700;
+    text-shadow: 0 0 20px #ffd700;
+    justify-content: center;
+}
+
+.guarantee-card {
+    margin-top: 60px;
+    padding: 50px 40px;
+    border-radius: 30px;
+    background: rgba(10, 5, 20, 0.3);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 0, 255, 0.3);
+    box-shadow: 0 0 30px rgba(255, 0, 255, 0.3);
+    width: 100%;
+    max-width: 800px;
+    transform-style: preserve-3d;
+    transition: all 0.3s;
+    opacity: 0;
+    transform: translateY(60px);
+    transition: opacity 0.8s, transform 0.8s, border-color 0.3s, box-shadow 0.3s;
+    position: relative;
+}
+
+.guarantee-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.guarantee-card:hover {
+    border-color: #00ffff;
+    box-shadow: 0 0 50px #ff00ff, 0 0 100px #00ffff;
+}
+
+.guarantee-title {
+    font-size: clamp(32px, 6vw, 50px);
+    margin-bottom: 25px;
+    color: #ffb9f7;
+    text-shadow: 0 0 15px #ff00ff;
+}
+
+.guarantee-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    font-size: clamp(16px, 3.5vw, 22px);
+    color: #ffeaff;
+}
+
+.projects-title {
+    font-size: clamp(32px, 6.5vw, 58px);
+    margin-bottom: 60px;
+    text-shadow: 0 0 15px #00ffff;
+}
+
+.projects-grid {
+    width: 100%;
+    max-width: 1000px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 30px;
+    padding: 0 10px;
+}
+
+.project-card {
+    padding: 40px 20px;
+    border-radius: 28px;
+    background: rgba(10, 5, 20, 0.3);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 0, 255, 0.3);
+    box-shadow: 0 0 30px rgba(255, 0, 255, 0.3);
+    font-size: 20px;
+    cursor: pointer;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transform-style: preserve-3d;
+    transition: all 0.3s;
+    opacity: 0;
+    transform: translateY(50px);
+    transition: opacity 0.8s, transform 0.8s, border-color 0.3s, box-shadow 0.3s;
+    position: relative;
+}
+
+.project-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.project-card:hover {
+    border-color: #00ffff;
+    box-shadow: 0 0 50px #ff00ff, 0 0 100px #00ffff;
+    transform: scale(1.03);
+}
+
+.click-message {
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 255, 255, 0.2);
+    border: 1px solid #00ffff;
+    border-radius: 15px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: #00ffff;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    box-shadow: 0 0 10px #00ffff;
+}
+
+.project-card.clicked .click-message {
+    opacity: 1;
+}
+
+.final {
+    padding: 150px 20px;
+    font-size: clamp(22px, 5vw, 42px);
+    text-align: center;
+    color: #ffffff;
+    text-shadow: 0 0 30px #ff00ff, 0 0 60px #00ffff;
+    background: transparent;
+    backdrop-filter: none;
+    width: 100%;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 1s, transform 1s;
+    position: relative;
+    z-index: 2;
+    margin-bottom: 0;
+}
+
+.final.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.signature {
+    margin-top: 80px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgba(200,170,255,0.35);
+}
+
+.to-top {
+    width: 100%;
+    padding: 20px 20px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    background: transparent;
+}
+
+.to-top-button {
+    display: inline-block;
+    padding: 15px 30px;
+    background: rgba(10, 5, 20, 0.3);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid #ff00ff;
+    border-radius: 50px;
+    color: #ff00ff;
+    font-size: 18px;
+    text-decoration: none;
+    letter-spacing: 2px;
+    box-shadow: 0 0 20px #ff00ff;
+    transition: all 0.3s;
+    cursor: pointer;
+    margin-bottom: 30px;
+}
+
+.to-top-button:hover {
+    border-color: #00ffff;
+    color: #00ffff;
+    box-shadow: 0 0 30px #00ffff;
+    transform: translateY(-5px);
+}
+
+.to-top-button:active {
+    transform: translateY(0);
+}
+
+.bottom-signature {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: rgba(200,170,255,0.5);
+    text-shadow: 0 0 10px #ff00ff;
+    padding: 20px 0;
+    text-align: center;
+}
+
+@media (max-width: 540px) {
+    section { padding: 70px 15px; }
+    .info-card, .guarantee-card { padding: 35px 25px; border-radius: 25px; }
+    .about-me-text { font-size: 16px; line-height: 1.8; }
+    .skill-header { font-size: 14px; }
+    .project-card { font-size: 16px; padding: 30px 15px; min-height: 100px; }
+    .review-stars { gap: 6px; }
+    .hero-title { letter-spacing: 4px; }
+    .hero-subtitle { margin-top: 15px; }
+    .skills-section { margin-top: 50px; }
+    .projects-grid { gap: 20px; }
+    .info-icon { width: 20px; height: 20px; font-size: 12px; }
+    .info-message { font-size: 12px; padding: 5px 10px; white-space: normal; width: 150px; right: -10px; }
+    .click-message { font-size: 10px; padding: 3px 8px; }
+    .final { padding: 100px 15px; }
+    .to-top { padding: 10px 15px 30px; }
+    .to-top-button { padding: 12px 25px; font-size: 16px; }
+}
+
+@media (max-width: 380px) {
+    .project-card { font-size: 15px; padding: 25px 12px; min-height: 90px; }
+    .info-card, .guarantee-card { padding: 25px 20px; }
+    .guarantee-list { gap: 12px; }
+    .review-stars { gap: 4px; }
+    .final { padding: 80px 15px; }
+    .to-top-button { padding: 10px 20px; font-size: 14px; }
+}
+
+.letter {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(120%) scale(0.92);
+    filter: blur(5px);
+    transition: transform 0.6s, opacity 0.6s, filter 0.6s;
+}
+
+.revealed .letter {
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) !important;
+    filter: blur(0) !important;
+}
+
+@keyframes starPulse {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.5); box-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff; }
+}
+
+.skill-html::before {
+    content: "🌐";
+    margin-right: 8px;
+    display: inline-block;
+    animation: bounce 2s infinite;
+}
+
+.skill-js::before {
+    content: "⚡";
+    margin-right: 8px;
+    display: inline-block;
+    animation: bounce 2s infinite;
+    animation-delay: 0.2s;
+}
+
+.skill-tg::before {
+    content: "📱";
+    margin-right: 8px;
+    display: inline-block;
+    animation: bounce 2s infinite;
+    animation-delay: 0.4s;
+}
+
+.skill-termux::before {
+    content: "📟";
+    margin-right: 8px;
+    display: inline-block;
+    animation: bounce 2s infinite;
+    animation-delay: 0.6s;
+}
+
+.skill-python::before {
+    content: "🐍";
+    margin-right: 8px;
+    display: inline-block;
+    animation: bounce 2s infinite;
+    animation-delay: 0.8s;
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<canvas id="parallaxCanvas"></canvas>
+<div class="glow-layer"></div>
+
+<main>
+
+<section class="hero">
+    <div class="container">
+        <div class="hero-title animated-text" id="heroTitle">Dicstery</div>
+        <div class="hero-subtitle" id="heroSubtitle"></div>
+    </div>
+</section>
+
+<section>
+    <div class="info-card reveal" id="aboutCard">
+        <div class="info-icon">i</div>
+        <div class="info-message">Нажми чтобы узнать больше</div>
+        <div class="about-me-title animated-text">Обо мне</div>
+        <div class="about-me-text">
+            Я занимаюсь програмированием уже много лет. Создаю сайты, телеграм-ботов, софты для termux и много чего ещё. Ниже представлены мои навыки в разных задачах.
+        </div>
+    </div>
+
+    <div class="skills-section">
+        <div class="skills-title animated-text">Мои навыки</div>
+        <div class="skill-item">
+            <div class="skill-header">
+                <span class="skill-name"><span class="skill-html"></span>HTML / CSS</span>
+                <span>70%</span>
+            </div>
+            <div class="skill-bar"><div class="skill-progress" data-progress="70"></div></div>
+        </div>
+        <div class="skill-item">
+            <div class="skill-header">
+                <span class="skill-name"><span class="skill-js"></span>JavaScript</span>
+                <span>75%</span>
+            </div>
+            <div class="skill-bar"><div class="skill-progress" data-progress="75"></div></div>
+        </div>
+        <div class="skill-item">
+            <div class="skill-header">
+                <span class="skill-name"><span class="skill-tg"></span>Telegram API</span>
+                <span>80%</span>
+            </div>
+            <div class="skill-bar"><div class="skill-progress" data-progress="80"></div></div>
+        </div>
+        <div class="skill-item">
+            <div class="skill-header">
+                <span class="skill-name"><span class="skill-termux"></span>Termux</span>
+                <span>90%</span>
+            </div>
+            <div class="skill-bar"><div class="skill-progress" data-progress="90"></div></div>
+        </div>
+        <div class="skill-item">
+            <div class="skill-header">
+                <span class="skill-name"><span class="skill-python"></span>Python</span>
+                <span>85%</span>
+            </div>
+            <div class="skill-bar"><div class="skill-progress" data-progress="85"></div></div>
+        </div>
+    </div>
+
+    <div class="info-card review-card reveal">
+        <div class="info-icon">i</div>
+        <div class="info-message">65+ довольных клиентов</div>
+        <div class="review-count">65+ отзывов</div>
+        <div class="review-stars">★★★★★</div>
+    </div>
+
+    <div class="guarantee-card reveal" id="guaranteeCard">
+        <div class="info-icon">i</div>
+        <div class="info-message">Надёжность и качество</div>
+        <div class="guarantee-title animated-text">Гарантии</div>
+        <div class="guarantee-list">
+            <div>✓ Работа до результата</div>
+            <div>✓ Исправление ошибок бесплатно</div>
+            <div>✓ Поддержка после завершения проекта</div>
+            <div>✓ Быстрые сроки выполнения</div>
+            <div>✓ Оплата при получении</div>
+        </div>
+    </div>
+</section>
+
+<section>
+    <div class="projects-title animated-text">Что надо посетить</div>
+    <div class="projects-grid">
+        <div class="project-card" data-url="https://t.me/repa_Dicstery">
+            Отзывы
+            <div class="click-message">✓ Открыто</div>
+        </div>
+        <div class="project-card" data-url="https://t.me/dicstery_place">
+            Переходник
+            <div class="click-message">✓ Открыто</div>
+        </div>
+        <div class="project-card" data-url="https://t.me/iakzo">
+            Связь со мной
+            <div class="click-message">✓ Открыто</div>
+        </div>
+        <div class="project-card" data-url="https://t.me/Dicstery_prais">
+            Прайс
+            <div class="click-message">✓ Открыто</div>
+        </div>
+    </div>
+</section>
+
+<section class="final reveal">
+    Эволюция продолжается. А Dicstery её обгоняет.
+</section>
+
+<div class="to-top">
+    <a href="#" class="to-top-button">↑ НАВЕРХ</a>
+    <div class="bottom-signature">by @Dicstery</div>
+</div>
+
+</main>
+
+<script>
+const canvas = document.getElementById('parallaxCanvas');
+const ctx = canvas.getContext('2d');
+let width, height;
+let mouseX = 0, mouseY = 0;
+let mouseActive = false;
+
+function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+}
+
+resize();
+
+const particles = [];
+for (let i = 0; i < 35; i++) {
+    particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        size: Math.random() * 2 + 1,
+        speedX: (Math.random() - 0.5) * 0.15,
+        speedY: (Math.random() - 0.5) * 0.15,
+        color: Math.random() > 0.5 ? '#ff00ff' : '#00ffff',
+        opacity: Math.random() * 0.5 + 0.2
+    });
+}
+
+function animate() {
+    ctx.clearRect(0, 0, width, height);
+    
+    for (let p of particles) {
+        if (mouseActive) {
+            let dx = mouseX - p.x;
+            let dy = mouseY - p.y;
+            let dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 80) {
+                let angle = Math.atan2(dy, dx);
+                let force = (80 - dist) / 2000;
+                p.x -= Math.cos(angle) * force * 10;
+                p.y -= Math.sin(angle) * force * 10;
+            }
+        }
+        
+        p.x += p.speedX;
+        p.y += p.speedY;
+        
+        if (p.x < 0) p.x = width;
+        if (p.x > width) p.x = 0;
+        if (p.y < 0) p.y = height;
+        if (p.y > height) p.y = 0;
+        
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 10;
+        ctx.globalAlpha = p.opacity;
+        ctx.fill();
+    }
+    
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    mouseActive = true;
+});
+
+document.addEventListener('mouseleave', () => {
+    mouseActive = false;
+});
+
+document.addEventListener('touchmove', (e) => {
+    if (e.touches.length) {
+        mouseX = e.touches[0].clientX;
+        mouseY = e.touches[0].clientY;
+        mouseActive = true;
+    }
+});
+
+document.addEventListener('touchend', () => {
+    mouseActive = false;
+});
+
+window.addEventListener('resize', resize);
+
+const progressBar = document.getElementById('progressBar');
+window.addEventListener('scroll', () => {
+    let scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight) * 100;
+    progressBar.style.width = scrollPercent + '%';
+});
+
+const heroTitle = document.getElementById('heroTitle');
+const heroSubtitle = document.getElementById('heroSubtitle');
+const aboutCard = document.getElementById('aboutCard');
+const guaranteeCard = document.getElementById('guaranteeCard');
+
+document.addEventListener('mousemove', (e) => {
+    let x = (e.clientX / width - 0.5) * 15;
+    let y = (e.clientY / height - 0.5) * 15;
+    
+    heroTitle.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
+    heroSubtitle.style.transform = `translateX(${x}px) translateY(${y}px)`;
+    aboutCard.style.transform = `rotateY(${x * 0.2}deg) rotateX(${-y * 0.2}deg)`;
+    guaranteeCard.style.transform = `rotateY(${x * 0.2}deg) rotateX(${-y * 0.2}deg)`;
+    
+    document.querySelectorAll('.project-card').forEach(card => {
+        card.style.transform = `rotateY(${x * 0.15}deg) rotateX(${-y * 0.15}deg)`;
+    });
+});
+
+document.querySelectorAll('.animated-text').forEach(el => {
+    if (el.id === 'heroSubtitle') return;
+    let text = el.textContent;
+    el.textContent = '';
+    for (let i = 0; i < text.length; i++) {
+        let span = document.createElement('span');
+        span.className = 'letter';
+        span.textContent = text[i] === ' ' ? '\u00A0' : text[i];
+        span.style.transitionDelay = i * 0.02 + 's';
+        el.appendChild(span);
+    }
+});
+
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        document.querySelector('.hero .hero-title').classList.add('revealed');
+    }, 100);
+    
+    const subtitle = document.getElementById('heroSubtitle');
+    const text = "мастер в своём деле";
+    let i = 0;
+    subtitle.innerHTML = '';
+    
+    function typeWriter() {
+        if (i < text.length) {
+            subtitle.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(typeWriter, 100);
+        } else {
+            let cursor = document.createElement('span');
+            cursor.className = 'cursor';
+            subtitle.appendChild(cursor);
+        }
+    }
+    
+    typeWriter();
+});
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            entry.target.classList.add('revealed');
+            if (entry.target.classList.contains('skills-section')) {
+                entry.target.querySelectorAll('.skill-progress').forEach(bar => {
+                    bar.style.width = bar.dataset.progress + '%';
+                });
+            }
+        }
+    });
+}, { threshold: 0.2 });
+
+document.querySelectorAll('.reveal, .skills-section, .final, .info-card, .guarantee-card, .project-card').forEach(el => observer.observe(el));
+
+document.querySelectorAll('.project-card').forEach(card => {
+    card.addEventListener('click', function() {
+        let url = this.dataset.url;
+        if (url) {
+            this.classList.add('clicked');
+            setTimeout(() => {
+                this.classList.remove('clicked');
+            }, 1000);
+            window.open(url, '_blank');
+        }
+    });
+    
+    card.addEventListener('touchstart', () => {
+        card.style.transform = 'scale(0.97)';
+    });
+    
+    card.addEventListener('touchend', () => {
+        card.style.transform = '';
+    });
+    
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'button');
+});
+
+for (let i = 0; i < 35; i++) {
+    let star = document.createElement('div');
+    star.style.position = 'fixed';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.width = '2px';
+    star.style.height = '2px';
+    star.style.background = 'white';
+    star.style.borderRadius = '50%';
+    star.style.zIndex = '-3';
+    star.style.animation = `starPulse ${Math.random() * 3 + 2}s infinite`;
+    document.body.appendChild(star);
+}
+</script>
+
+</body>
+</html>
